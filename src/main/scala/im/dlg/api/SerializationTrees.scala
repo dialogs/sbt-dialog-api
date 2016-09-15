@@ -118,7 +118,7 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
 
     Vector(
       DEF("writeTo", UnitClass) withParams (PARAM("out", CodedOutputStreamClass)) := writer,
-      DEF("getSerializedSize", IntClass) := size,
+      LAZYVAL("getSerializedSize", IntClass) := size,
       DEF("toByteArray", arrayType(ByteClass)) := BLOCK(
         VAL("res") := NEW(arrayType(ByteClass), REF("getSerializedSize")),
         VAL("out") := CodedOutputStreamClass DOT ("newInstance") APPLY (REF("res")),
@@ -135,7 +135,7 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
 
     Vector(
       DEF("childWriteTo", UnitClass) withParams (PARAM("out", CodedOutputStreamClass)) := writer,
-      DEF("childGetSerializedSize", IntClass) := size,
+      LAZYVAL("childGetSerializedSize", IntClass) := size,
       DEF("childToByteArray", arrayType(ByteClass)) := BLOCK(
         VAL("res") := NEW(arrayType(ByteClass), REF("childGetSerializedSize")),
         VAL("out") := CodedOutputStreamClass DOT ("newInstance") APPLY (REF("res")),
@@ -153,7 +153,7 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
         REF("out") DOT ("writeInt32") APPLY (LIT(1), REF("header")),
         REF("out") DOT ("writeByteArray") APPLY (LIT(2), REF("childToByteArray"))
       ),
-      DEF("getSerializedSize", IntClass) withFlags (Flags.FINAL) := BLOCK(
+      LAZYVAL("getSerializedSize", IntClass) withFlags (Flags.FINAL) := BLOCK(
         VAL("headerSizeWithTag") := CodedOutputStream DOT ("computeInt32Size") APPLY (LIT(1), REF("header")),
         VAL("childTagSize") := CodedOutputStream DOT ("computeTagSize") APPLY (LIT(2)),
         VAL("childSerializedSize") := REF("childGetSerializedSize"),
