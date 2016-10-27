@@ -105,7 +105,7 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
         Vector(
           VAL("size") := REF(name) DOT (serSize),
           (CodedOutputStreamClass DOT ("computeTagSize") APPLY (LIT(id))) INT_+
-            (CodedOutputStreamClass DOT ("computeRawVarint32Size") APPLY (REF("size"))) INT_+
+            (CodedOutputStreamClass DOT ("computeUInt32SizeNoTag") APPLY (REF("size"))) INT_+
             REF("size")
         )
       case Types.Alias(aliasName) ⇒
