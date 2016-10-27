@@ -40,7 +40,7 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
       case struct @ Types.Struct(structName) ⇒
         Vector(
           REF("out") DOT ("writeTag") APPLY (LIT(id), REF("com.google.protobuf.WireFormat.WIRETYPE_LENGTH_DELIMITED")),
-          REF("out") DOT ("writeRawVarint32") APPLY (REF(name) DOT (if (isChild(struct.name)) "childGetSerializedSize" else "getSerializedSize")),
+          REF("out") DOT ("writeUInt32NoTag") APPLY (REF(name) DOT (if (isChild(struct.name)) "childGetSerializedSize" else "getSerializedSize")),
           REF(name) DOT (if (isChild(struct.name)) "childWriteTo" else "writeTo") APPLY (REF("out"))
         )
       case Types.Trait(traitName) ⇒
@@ -158,7 +158,7 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
         VAL("childTagSize") := CodedOutputStream DOT ("computeTagSize") APPLY (LIT(2)),
         VAL("childSerializedSize") := REF("childGetSerializedSize"),
         VAL("childSizeWithoutTag") := INFIX_CHAIN("+", Seq(
-          CodedOutputStream DOT ("computeRawVarint32Size") APPLY (REF("childSerializedSize")),
+          CodedOutputStream DOT ("computeUInt32SizeNoTag") APPLY (REF("childSerializedSize")),
           REF("childSerializedSize")
         )),
         INFIX_CHAIN("+", Seq(REF("headerSizeWithTag"), REF("childTagSize"), REF("childSizeWithoutTag")))
