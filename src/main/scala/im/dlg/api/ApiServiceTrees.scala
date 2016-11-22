@@ -7,11 +7,11 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
   protected val baseServiceTrees: Vector[Tree] = {
     Vector(
       TRAITDEF("Service") := BLOCK(
-        TYPEVAR("HandleResult") withFlags Flags.PROTECTED := REF("Xor") APPLYTYPE (
+        TYPEVAR("HandleResult") withFlags Flags.PROTECTED := REF("Either") APPLYTYPE (
           "RpcError",
           "RpcOk"
         ),
-        TYPEVAR("HandlerResult[A <: RpcResponse]") withFlags Flags.PROTECTED := REF("Xor") APPLYTYPE (
+        TYPEVAR("HandlerResult[A <: RpcResponse]") withFlags Flags.PROTECTED := REF("Either") APPLYTYPE (
           "RpcError",
           "A"
         ),
@@ -19,7 +19,7 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
         DEF("onFailure", TYPE_REF(REF(PartialFunctionClass) APPLYTYPE ("Throwable", "RpcError"))) :=
           (REF("PartialFunction") DOT "empty" APPLYTYPE ("Throwable", "RpcError")),
         DEF("recoverFailure[A <: RpcResponse]", TYPE_REF(REF(PartialFunctionClass) APPLYTYPE ("Throwable", "HandlerResult[A]"))) withFlags Flags.FINAL :=
-          REF("onFailure") DOT "andThen" APPLY LAMBDA(PARAM("e")) ==> BLOCK(REF("Xor") DOT "Left" APPLY REF("e"))
+          REF("onFailure") DOT "andThen" APPLY LAMBDA(PARAM("e")) ==> BLOCK(REF("Left") APPLY REF("e"))
       ),
       TRAITDEF("BaseClientData") := BLOCK(
         VAL("authId", LongClass),
@@ -131,10 +131,12 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
                   } else
                     REF(f"handle$name%s") APPLY rqParams APPLY REF("clientData")),
                   REF("f") DOT "map" APPLY BLOCK(
-                    CASE(REF("Xor.Right") APPLY REF("rsp")) ==> (
-                      REF("Xor.Right") APPLY (REF("RpcOk") APPLY REF("rsp"))
+                    CASE(REF("Right") APPLY REF("rsp")) ==> (
+                      REF("Right") APPLY (REF("RpcOk") APPLY REF("rsp"))
                     ),
-                    CASE(REF("err: Xor.Left[RpcError]")) ==> REF("err")
+                    CASE(REF("Left") APPLY REF("err")) ==> (
+                      REF("Left") APPLY (REF("err"))
+                    )
                   )
                 )
               )

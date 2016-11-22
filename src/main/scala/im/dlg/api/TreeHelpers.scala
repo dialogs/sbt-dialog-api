@@ -47,10 +47,10 @@ private[api] trait TreeHelpers {
       attrType(aliasesPrim.get(aliasName).get)
   }
 
-  def XORRIGHT(right: Tree) = REF("Xor") DOT "right" APPLY right
-  def XORLEFT(left: Tree) = REF("Xor") DOT "left" APPLY left
+  def XORRIGHT(right: Tree) = REF("Right") APPLY right
+  def XORLEFT(left: Tree) = REF("Left") APPLY left
 
-  def xorType(arg1: Type, arg2: Type) = typeRef(NoPrefix, valueCache("Xor"), List(arg1, arg2))
+  def xorType(arg1: Type, arg2: Type) = typeRef(NoPrefix, valueCache("Either"), List(arg1, arg2))
 
   def emptyVector = valueCache("Vector") DOT "empty"
 }
