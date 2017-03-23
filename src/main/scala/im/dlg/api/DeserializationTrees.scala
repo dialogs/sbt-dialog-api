@@ -270,7 +270,7 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
         REF("Refs") DOT traitName DOT "parseFrom" APPLY REF("stream")
       )
     case alias @ Types.Alias(aliasName) ⇒
-      reader(aliasesPrim.get(aliasName).get)
+      reader(aliasesPrim(aliasName))
     case attr ⇒
       throw new RuntimeException(s"Unknown attr type: ${attr}")
   }
@@ -322,10 +322,12 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
 
       attr.typ match {
         case typ @ Types.List(listAttrType) ⇒
-          if (listAttrType.isInstanceOf[Types.Struct] ||
-            listAttrType.isInstanceOf[Types.Trait] ||
-            listAttrType.isInstanceOf[Types.Bytes.type] ||
-            listAttrType.isInstanceOf[Types.String.type]) {
+          val exact = dealias(typ)
+
+          if (exact.isInstanceOf[Types.Struct] ||
+            exact.isInstanceOf[Types.Trait] ||
+            exact.isInstanceOf[Types.Bytes.type] ||
+            exact.isInstanceOf[Types.String.type]) {
             val baseCase = baseCaseExpr ==> BLOCK(
               readCaseBody(attr.name, typ, Some(":+"))
             )

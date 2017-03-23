@@ -43,8 +43,13 @@ private[api] trait TreeHelpers {
       optionType(attrType(optTyp))
     case trai @ Types.Trait(_) ⇒
       valueCache(s"Refs.${trai.name}")
-    case alias @ Types.Alias(aliasName) ⇒
-      attrType(aliasesPrim.get(aliasName).get)
+    case Types.Alias(aliasName) ⇒
+      attrType(aliasesPrim(aliasName))
+  }
+
+  protected def dealias(typ: Types.AttributeType): AttributeType = typ match {
+    case Types.Alias(aliasName) => aliasesPrim(aliasName)
+    case other => other
   }
 
   def XORRIGHT(right: Tree) = REF("Right") APPLY right
