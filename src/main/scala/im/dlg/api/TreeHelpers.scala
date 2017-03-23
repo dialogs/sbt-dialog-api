@@ -48,8 +48,8 @@ private[api] trait TreeHelpers {
   }
 
   protected def dealias(typ: Types.AttributeType): AttributeType = typ match {
-    case Types.Alias(aliasName) => aliasesPrim(aliasName)
-    case other => other
+    case Types.Alias(aliasName) ⇒ aliasesPrim(aliasName)
+    case other                  ⇒ other
   }
 
   def XORRIGHT(right: Tree) = REF("Right") APPLY right
