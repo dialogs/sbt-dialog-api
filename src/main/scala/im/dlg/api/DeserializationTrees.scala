@@ -224,8 +224,9 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
 
         REF("res")
       )
-    case Types.List(Types.String) ⇒ reader(Types.String)
-    case Types.List(Types.Bytes)  ⇒ reader(Types.Bytes)
+    case Types.List(Types.String)           ⇒ reader(Types.String)
+    case Types.List(Types.Bytes)            ⇒ reader(Types.Bytes)
+    case Types.List(alias @ Types.Alias(_)) ⇒ reader(Types.List(dealias(alias)))
     case Types.List(listAttrType) ⇒
       BLOCK(
         VAL("length") := REF("in") DOT "readRawVarint32" APPLY (),
@@ -322,7 +323,7 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
 
       attr.typ match {
         case typ @ Types.List(listAttrType) ⇒
-          val exact = dealias(typ)
+          val exact = dealias(listAttrType)
 
           if (exact.isInstanceOf[Types.Struct] ||
             exact.isInstanceOf[Types.Trait] ||
