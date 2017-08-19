@@ -33,6 +33,7 @@ private[api] trait TreeHelpers {
     case Types.String ⇒ StringClass
     case Types.Bool   ⇒ BooleanClass
     case Types.Bytes  ⇒ arrayType(ByteClass)
+    case Types.UUID   ⇒ valueCache("java.util.UUID")
     case struct @ Types.Struct(_) ⇒
       valueCache(s"Refs.${struct.name}")
     case enum @ Types.Enum(_) ⇒

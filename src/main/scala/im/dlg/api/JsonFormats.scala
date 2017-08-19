@@ -16,6 +16,7 @@ private[api] object Types {
   case object String extends AttributeType
   case object Bool extends AttributeType
   case object Bytes extends AttributeType
+  case object UUID extends AttributeType
 
   sealed trait NamedAttributeType extends AttributeType {
     val name: String
@@ -165,6 +166,7 @@ private[api] trait JsonFormats extends DefaultJsonProtocol with Hacks {
       case "string"    ⇒ Types.String
       case "bool"      ⇒ Types.Bool
       case "bytes"     ⇒ Types.Bytes
+      case "uuid"      ⇒ Types.UUID
       case unsupported ⇒ deserializationError(s"Unknown type $unsupported%s")
     }
 

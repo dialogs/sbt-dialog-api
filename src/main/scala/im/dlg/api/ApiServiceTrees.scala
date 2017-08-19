@@ -71,6 +71,7 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
               case Types.Double                   ⇒ DoubleClass
               case Types.String                   ⇒ StringClass
               case Types.Bytes                    ⇒ arrayType(ByteClass)
+              case Types.UUID                     ⇒ valueCache("java.util.UUID")
               case enum @ Types.Enum(_)           ⇒ valueCache(s"Refs.${enum.name}.${enum.name}")
               case Types.Opt(optAttrType)         ⇒ optionType(scalaTyp(optAttrType))
               case Types.List(listAttrType)       ⇒ indexedSeqType(scalaTyp(listAttrType))

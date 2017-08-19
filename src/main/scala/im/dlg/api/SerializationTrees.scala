@@ -23,6 +23,10 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
       case Types.Double ⇒ Vector(simpleWriter("writeDouble", id, name))
       case Types.String ⇒ Vector(simpleWriter("writeString", id, name))
       case Types.Bytes  ⇒ Vector(simpleWriter("writeByteArray", id, name))
+      case Types.UUID ⇒ Vector(
+        VAL(s"raw$name") := REF("UUIDUtils") DOT "longsToBytes" APPLY (REF(s"$name.getMostSignificantBits"), REF(s"$name.getLeastSignificantBits")),
+        simpleWriter("writeByteArray", id, s"raw$name")
+      )
       case Types.Enum(_) ⇒
         Vector(simpleWriter("writeEnum", id, REF(name) DOT ("id")))
       case Types.Opt(optAttrType) ⇒
@@ -80,6 +84,10 @@ private[api] trait SerializationTrees extends TreeHelpers with StringHelperTrees
       case Types.String  ⇒ Vector(simpleComputer("computeStringSize", id, name))
       case Types.Bytes   ⇒ Vector(simpleComputer("computeByteArraySize", id, REF(name)))
       case Types.Enum(_) ⇒ Vector(simpleComputer("computeEnumSize", id, REF(name) DOT ("id")))
+      case Types.UUID ⇒ Vector(
+        VAL(s"raw$name") := REF("UUIDUtils") DOT "longsToBytes" APPLY (REF(s"$name.getMostSignificantBits"), REF(s"$name.getLeastSignificantBits")),
+        simpleComputer("computeByteArraySize", id, REF(s"raw$name"))
+      )
       case Types.Opt(optAttrType) ⇒
         Vector(
           IF(REF(name) DOT "isDefined") THEN (

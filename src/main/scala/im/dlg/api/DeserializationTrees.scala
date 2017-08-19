@@ -203,12 +203,17 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
   private def simpleReader(fn: String) = REF("in") DOT fn APPLY ()
 
   private def reader(typ: Types.AttributeType): Tree = typ match {
-    case Types.Int32            ⇒ simpleReader("readInt32")
-    case Types.Int64            ⇒ simpleReader("readInt64")
-    case Types.Bool             ⇒ simpleReader("readBool")
-    case Types.Double           ⇒ simpleReader("readDouble")
-    case Types.String           ⇒ simpleReader("readString")
-    case Types.Bytes            ⇒ simpleReader("readByteArray")
+    case Types.Int32  ⇒ simpleReader("readInt32")
+    case Types.Int64  ⇒ simpleReader("readInt64")
+    case Types.Bool   ⇒ simpleReader("readBool")
+    case Types.Double ⇒ simpleReader("readDouble")
+    case Types.String ⇒ simpleReader("readString")
+    case Types.Bytes  ⇒ simpleReader("readByteArray")
+    case Types.UUID ⇒ BLOCK(
+      VAL("raw") := REF("in") DOT "readByteArray" APPLY (),
+
+      REF("UUIDUtils") DOT "bytesToUUID" APPLY (REF("raw"))
+    )
     case Types.Opt(optAttrType) ⇒ reader(optAttrType)
     case Types.List(typ @ (Types.Struct(_) | Types.Trait(_))) ⇒
       val structName = typ.asInstanceOf[NamedAttributeType].name
@@ -306,7 +311,7 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
   @annotation.tailrec
   private def wireType(attrType: Types.AttributeType): Int = {
     attrType match {
-      case Types.Int32 | Types.Int64 | Types.Bool ⇒ WireFormat.WIRETYPE_VARINT
+      case Types.Int32 | Types.Int64 | Types.Bool | Types.UUID ⇒ WireFormat.WIRETYPE_VARINT
       case Types.Double ⇒ WireFormat.WIRETYPE_FIXED64
       case Types.Enum(_) ⇒ WireFormat.WIRETYPE_VARINT
       case Types.String | Types.Bytes | Types.Struct(_) | Types.Trait(_) ⇒ WireFormat.WIRETYPE_LENGTH_DELIMITED

@@ -66,6 +66,58 @@ final class Json2Tree(jsonString: String)
 
     val globalRefsTree: Tree = OBJECTDEF("Refs") withFlags PRIVATEWITHIN("api") := BLOCK(globalRefsV.flatten)
 
+    val uuidUtils: Tree = OBJECTDEF("UUIDUtils") := BLOCK(
+      DEF("bytesToUUID", valueCache("java.util.UUID")) withParams (PARAM("bytes", valueCache("Array[Byte]"))) := BLOCK(
+        REF(
+          """
+            |    val arrays = bytes.grouped(8).toList
+            |    new java.util.UUID(longFromBytes(arrays(0)), longFromBytes(arrays(1)))
+          """.stripMargin
+        )
+      ),
+
+      DEF("longFromBytes", LongClass) withParams (PARAM("bytes", valueCache("Array[Byte]"))) := BLOCK(
+        REF(
+          """
+            |    var value = 0L
+            |    var i = 0
+            |
+            |    while (i < 8) {
+            |      value = (value << 8) + (bytes(i) & 0xff)
+            |      i += 1
+            |    }
+            |
+            |    value
+          """.stripMargin
+        )
+      ),
+
+      DEF("longsToBytes", valueCache("Array[Byte]")) withParams (PARAM("v1", LongClass), PARAM("v2", LongClass)) := BLOCK(
+        REF(
+          """
+            |    val bytes = Array.ofDim[Byte](16)
+            |    var i = 15
+            |    var j = 1
+            |    var v = v2
+            |
+            |    while (j > -1) {
+            |      if (j == 0) v = v1
+            |
+            |      while (i >= j * 8) {
+            |        bytes(i) = (v & 0xFF).toByte
+            |        v >>= 8
+            |        i -= 1
+            |      }
+            |
+            |      j -= 1
+            |    }
+            |
+            |    bytes
+          """.stripMargin
+        )
+      )
+    )
+
     val bserializableDef: Tree = TRAITDEF("BSerializable") withParents valueCache("java.io.Serializable") := BLOCK(
       DEF("toByteArray", arrayType(ByteClass)),
       DEF("getSerializedSize", IntClass)
@@ -107,6 +159,7 @@ final class Json2Tree(jsonString: String)
     val baseTrees: Vector[Tree] = Vector(
       globalRefsTree,
       parseExceptionDef,
+      uuidUtils,
       bserializableDef,
       containsHeaderDef,
       updateBoxDef,
