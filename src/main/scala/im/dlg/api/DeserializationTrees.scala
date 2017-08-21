@@ -231,6 +231,7 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
       )
     case Types.List(Types.String)           ⇒ reader(Types.String)
     case Types.List(Types.Bytes)            ⇒ reader(Types.Bytes)
+    case Types.List(Types.UUID)             ⇒ reader(Types.UUID)
     case Types.List(alias @ Types.Alias(_)) ⇒ reader(Types.List(dealias(alias)))
     case Types.List(listAttrType) ⇒
       BLOCK(
@@ -311,10 +312,10 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
   @annotation.tailrec
   private def wireType(attrType: Types.AttributeType): Int = {
     attrType match {
-      case Types.Int32 | Types.Int64 | Types.Bool | Types.UUID ⇒ WireFormat.WIRETYPE_VARINT
+      case Types.Int32 | Types.Int64 | Types.Bool ⇒ WireFormat.WIRETYPE_VARINT
       case Types.Double ⇒ WireFormat.WIRETYPE_FIXED64
       case Types.Enum(_) ⇒ WireFormat.WIRETYPE_VARINT
-      case Types.String | Types.Bytes | Types.Struct(_) | Types.Trait(_) ⇒ WireFormat.WIRETYPE_LENGTH_DELIMITED
+      case Types.String | Types.Bytes | Types.UUID | Types.Struct(_) | Types.Trait(_) ⇒ WireFormat.WIRETYPE_LENGTH_DELIMITED
       case Types.Opt(optAttrType) ⇒ wireType(optAttrType)
       case Types.List(listAttrType) ⇒ wireType(listAttrType)
       case Types.Alias(name) ⇒ wireType(aliasesPrim.get(name).get)
@@ -333,6 +334,7 @@ private[api] trait DeserializationTrees extends TreeHelpers with Hacks {
           if (exact.isInstanceOf[Types.Struct] ||
             exact.isInstanceOf[Types.Trait] ||
             exact.isInstanceOf[Types.Bytes.type] ||
+            exact.isInstanceOf[Types.UUID.type] ||
             exact.isInstanceOf[Types.String.type]) {
             val baseCase = baseCaseExpr ==> BLOCK(
               readCaseBody(attr.name, typ, Some(":+"))

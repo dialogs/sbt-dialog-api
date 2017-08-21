@@ -6,7 +6,7 @@ organization := "im.dlg"
 
 name := "sbt-dialog-api"
 
-version := "0.0.9"
+version := "0.0.10"
 
 scalaVersion := "2.10.6"
 
