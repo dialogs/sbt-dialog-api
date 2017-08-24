@@ -70,8 +70,12 @@ final class Json2Tree(jsonString: String)
       DEF("bytesToUUID", valueCache("java.util.UUID")) withParams (PARAM("bytes", valueCache("Array[Byte]"))) := BLOCK(
         REF(
           """
+            |  if (bytes.length == 16) {
             |    val arrays = bytes.grouped(8).toList
             |    new java.util.UUID(longFromBytes(arrays(0)), longFromBytes(arrays(1)))
+            |  } else {
+            |    new java.util.UUID(0L, 0L)
+            |  }
           """.stripMargin
         )
       ),
