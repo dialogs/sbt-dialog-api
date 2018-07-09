@@ -6,7 +6,7 @@ organization := "im.dlg"
 
 name := "sbt-dialog-api"
 
-version := "0.0.11"
+version := "0.0.12"
 
 scalaVersion := "2.10.6"
 
@@ -19,6 +19,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "com.eed3si9n" %% "treehugger" % "0.4.1",
   "io.spray" %% "spray-json" % "1.3.1",
+  "com.google.protobuf" % "protobuf-java" % "3.4.0",
   "org.specs2" %% "specs2-core" % "2.4.15" % "test"
 )
 
