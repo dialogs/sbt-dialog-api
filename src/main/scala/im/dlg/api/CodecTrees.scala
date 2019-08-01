@@ -45,7 +45,6 @@ private[api] trait CodecTrees extends TreeHelpers {
         IMPORT("akka.util.ByteString"),
         IMPORT("akka.util.ByteIterator"),
         IMPORT("im.dlg.codec._"),
-        IMPORT("im.dlg.server.mtproto.codecs._"),
         IMPORT("com.google.protobuf.CodedInputStream")
       ) ++ requestCodecTrees(requests)
         ++ responseCodecTrees(responses)
