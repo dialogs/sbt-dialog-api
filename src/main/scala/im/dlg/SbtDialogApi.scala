@@ -16,27 +16,23 @@ object SbtDialogApi extends AutoPlugin {
   lazy val dialogApiMain = SettingKey[String]("dialogapi-main", "dialogApi main class.")
 
   lazy val settings: Seq[Setting[_]] = Seq(
-    sourceDirectory in DialogApi <<= (sourceDirectory in Compile),
-    path <<= sourceDirectory in DialogApi,
-    managedClasspath in DialogApi <<= (classpathTypes, update) map { (ct, report) ⇒
-      Classpaths.managedJars(DialogApi, ct, report)
-    },
-    outputPath <<= sourceManaged in DialogApi,
+    sourceDirectory in DialogApi := (sourceDirectory in Compile).value,
+    path := (sourceDirectory in DialogApi).value,
+    managedClasspath in DialogApi :=  Classpaths.managedJars(DialogApi, classpathTypes.value, update.value),
+    outputPath := (sourceManaged in DialogApi).value,
 
-    dialogApi <<= (
-      sourceDirectory in DialogApi,
-      sourceManaged in DialogApi,
-      managedClasspath in DialogApi,
-      javaHome,
-      streams
-    ).map(generate),
+    dialogApi := generate(
+      (sourceDirectory in DialogApi).value,
+      (sourceManaged in DialogApi).value,
+      (managedClasspath in DialogApi).value,
+      javaHome.value,
+      streams.value),
 
-    dialogApiClean <<= (
-      sourceManaged in DialogApi,
-      streams
-    ).map(clean),
+    dialogApiClean := clean(
+      (sourceManaged in DialogApi).value,
+      streams.value),
 
-    sourceGenerators in Compile <+= dialogApi
+    sourceGenerators in Compile += dialogApi
   )
 
   private def compiledFileDir(targetDir: File): File =
