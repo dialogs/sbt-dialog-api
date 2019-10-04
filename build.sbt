@@ -1,4 +1,3 @@
-import scalariform.formatter.preferences._
 
 sbtPlugin := true
 
@@ -8,7 +7,7 @@ name := "sbt-dialog-api"
 
 version := "0.0.13"
 
-scalaVersion := "2.10.6"
+scalaVersion := "2.12.8"
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
@@ -17,19 +16,11 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.eed3si9n" %% "treehugger" % "0.4.1",
-  "io.spray" %% "spray-json" % "1.3.1",
+  "com.eed3si9n" %% "treehugger" % "0.4.3", 
+  "io.spray" %% "spray-json" % "1.3.5",
   "com.google.protobuf" % "protobuf-java" % "3.4.0",
-  "org.specs2" %% "specs2-core" % "2.4.15" % "test"
+  "org.specs2" %% "specs2-core" % "4.7.1" % Test
 )
-
-scalariformSettings
-
-ScalariformKeys.preferences :=
-  ScalariformKeys.preferences.value
-    .setPreference(RewriteArrowSymbols, true)
-    .setPreference(AlignParameters, true)
-    .setPreference(AlignSingleLineCaseStatements, true)
 
 publishMavenStyle := false
 bintrayOrganization := Some("dialog")
