@@ -7,6 +7,7 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
   protected val baseServiceTrees: Vector[Tree] = {
     Vector(
       TRAITDEF("Service") := BLOCK(
+        TYPEVAR("ApiClientData"),
         TYPEVAR("HandleResult") withFlags Flags.PROTECTED := REF("Either") APPLYTYPE (
           "RpcError",
           "RpcOk"
@@ -15,42 +16,12 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
           "RpcError",
           "A"
         ),
-        VAL("handleRequestPartial", valueCache("PartialFunction[RpcRequest, ClientData => Future[HandleResult]]")),
+        VAL("handleRequestPartial", valueCache("PartialFunction[RpcRequest, ApiClientData => Future[HandleResult]]")),
         DEF("onFailure", TYPE_REF(REF(PartialFunctionClass) APPLYTYPE ("Throwable", "RpcError"))) :=
           (REF("PartialFunction") DOT "empty" APPLYTYPE ("Throwable", "RpcError")),
         DEF("recoverFailure[A <: RpcResponse]", TYPE_REF(REF(PartialFunctionClass) APPLYTYPE ("Throwable", "HandlerResult[A]"))) withFlags Flags.FINAL :=
           REF("onFailure") DOT "andThen" APPLY LAMBDA(PARAM("e")) ==> BLOCK(REF("Left") APPLY REF("e"))
-      ),
-      TRAITDEF("BaseClientData") := BLOCK(
-        VAL("authId", LongClass),
-        VAL("sessionId", LongClass)
-      ),
-      CASECLASSDEF("AuthData")
-        withParams (PARAM("userId", IntClass), PARAM("authSid", IntClass), PARAM("appId", IntClass)),
-      CASECLASSDEF("ClientData")
-        withParams (
-          PARAM("authId", LongClass),
-          PARAM("sessionId", LongClass),
-          PARAM("authData", optionType(valueCache("AuthData"))),
-          PARAM("remoteAddr", optionType(valueCache("String"))) := REF("None")
-
-        )
-          withParents valueCache("BaseClientData") := BLOCK {
-            DEF("optUserId") := REF("authData") DOT "map" APPLY (WILDCARD DOT "userId")
-          },
-      CASECLASSDEF("AuthorizedClientData")
-        withParams (
-          PARAM("authId", LongClass),
-          PARAM("sessionId", LongClass),
-          PARAM("userId", IntClass),
-          PARAM("authSid", IntClass),
-          PARAM("appId", IntClass),
-          PARAM("remoteAddr", optionType(valueCache("String"))) := REF("None")
-        )
-          withParents valueCache("BaseClientData"),
-      CASECLASSDEF("GuestClientData")
-        withParams (PARAM("authId", LongClass), PARAM("sessionId", LongClass), PARAM("remoteAddr", optionType(valueCache("String"))) := REF("None"))
-        withParents valueCache("BaseClientData")
+      )
     )
   }
 
@@ -100,7 +71,7 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
 
           val doHname = "do" + hname.capitalize
 
-          val paramsWithClient = params :+ PARAM("clientData", valueCache("ClientData")).tree
+          val paramsWithClient = params :+ PARAM("clientData", valueCache("ApiClientData")).tree
           val attrNamesWithClient = attributes.map(a ⇒ REF(a.name)) :+ REF("clientData")
 
           Vector(
@@ -111,12 +82,12 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
             DEF(shname, htype)
               .withFlags(Flags.FINAL)
               .withParams(params)
-              .withParams(PARAM("clientData", valueCache("ClientData")).withFlags(Flags.IMPLICIT)) :=
+              .withParams(PARAM("clientData", valueCache("ApiClientData")).withFlags(Flags.IMPLICIT)) :=
               REF(doHname) APPLY attrNamesWithClient DOT "recover" APPLY REF("recoverFailure")
           )
       }).flatten
 
-      val pfType = valueCache("PartialFunction[RpcRequest, ClientData => Future[HandleResult]]")
+      val pfType = valueCache("PartialFunction[RpcRequest, ApiClientData => Future[HandleResult]]")
       val handleRequestDefPF = VAL("handleRequestPartial", pfType) withFlags Flags.OVERRIDE :=
         BLOCK(
           rpcs map {
@@ -126,7 +97,7 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
               }
 
               CASE(REF("r") withType valueCache(f"Request$name%s")) ==> (
-                LAMBDA(PARAM("clientData", valueCache("ClientData"))) ==> BLOCK(
+                LAMBDA(PARAM("clientData", valueCache("ApiClientData"))) ==> BLOCK(
                   VAL("f") := (if (rqParams.isEmpty) {
                     REF(f"handle$name%s()") APPLY REF("clientData")
                   } else
@@ -146,7 +117,7 @@ private[api] trait ApiServiceTrees extends TreeHelpers with StringHelperTrees {
         )
 
       val handleRequestDef = DEF("handleRequest", valueCache("Future[HandleResult]")) withParams (
-        PARAM("clientData", valueCache("ClientData")),
+        PARAM("clientData", valueCache("ApiClientData")),
         PARAM("request", valueCache(f"${packageName.capitalize}%sRpcRequest"))
       ) := BLOCK(
           REF("handleRequestPartial") APPLY REF("request") APPLY REF("clientData")
